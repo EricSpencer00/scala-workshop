@@ -1,32 +1,37 @@
 import scala.collection.mutable.PriorityQueue
 import scala.io.StdIn
 
-object MaxHeapSortApp {
+object StreamingMaxHeapApp {
 
   def main(args: Array[String]): Unit = {
-    println("Enter numbers separated by spaces:")
+    println("Enter numbers (type 'exit' to finish):")
 
-    val input = StdIn.readLine()
-
-    // Safe parsing: filter out invalid values
-    val numbers: Seq[Int] = input
-      .split("\\s+")
-      .flatMap(s => s.toIntOption)   // avoids exceptions
-
-    if (numbers.isEmpty) {
-      println("No valid numbers provided.")
-      return
-    }
-
-    // Max heap (default PriorityQueue is max heap in Scala)
     val maxHeap = PriorityQueue[Int]()
-    maxHeap ++= numbers
 
-    println("Sorted (descending via max heap):")
+    Iterator
+      .continually(StdIn.readLine())
+      .takeWhile(_ != null)
+      .takeWhile(_.trim.toLowerCase != "exit")
+      .foreach { line =>
+        val nums = line
+          .split("\\s+")
+          .flatMap(_.toIntOption)
 
-    // Extract elements safely
+        nums.foreach { n =>
+          maxHeap += n
+          // \r overwrites the current line in-place for live feedback
+          print(s"\r[Heap size: ${maxHeap.size}] Last inserted: $n    ")
+          Console.flush()
+        }
+      }
+
+    println("\n\nSorted (descending via max heap):")
+
     while (maxHeap.nonEmpty) {
-      println(maxHeap.dequeue())
+      val value = maxHeap.dequeue()
+      println(value)
+      // Small delay so output visibly streams rather than printing all at once
+      Thread.sleep(80)
     }
   }
 }
